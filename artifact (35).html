@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TITAN MATRIX ULTRA // مگاکنفرانس سایبری ۱۵ نفره</title>
+    
+    <!-- فونت‌های اختصاصی فارسی و سایبری -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Orbitron:wght@500;800;900&family=Vazirmatn:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- کتابخانه‌ها -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+    <style>
+        :root {
+            --cyan: #00f3ff;
+            --magenta: #ff0055;
+            --purple: #9d00ff;
+            --emerald: #00ff66;
+            --amber: #ffb700;
+            --dark-core: #030712;
+            --panel-bg: rgba(6, 11, 25, 0.82);
+            --panel-border: rgba(0, 243, 255, 0.28);
+            --glow-cyan: 0 0 20px rgba(0, 243, 255, 0.4);
+            --glow-magenta: 0 0 20px rgba(255, 0, 85, 0.4);
+            --font-fa: 'Vazirmatn', sans-serif;
+            --font-hud: 'Orbitron', monospace;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--dark-core);
+            color: #ecf3ff;
+            font-family: var(--font-fa);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* خطوط اسکن‌لاین هولوگرافیک CRT */
+        body::before {
+            content: " ";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* نوار وضعیت بالای صفحه */
+        header {
+            position: relative;
+            z-index: 10;
+            height: 60px;
+            padding: 0 24px;
+            background: rgba(4, 8, 18, 0.92);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .sys-identity {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .quantum-orb {
+            width: 16px;
+            height: 16px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: var(--glow-cyan);
+            position: relative;
+            animation: pulseOrb 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseOrb {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px var(--cyan)); }
+            50% { transform: scale(1.3); filter: drop-shadow(0 0 14px var(--emerald)); background: var(--emerald); }
+        }
+
+        .brand-text {
+            font-family: var(--font-hud);
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .room-pill {
+            font-family: var(--font-code);
+            font-size: 12px;
+            color: var(--cyan);
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid var(--panel-border);
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        .hud-telemetry {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-code);
+            font-size: 12px;
+        }
+
+        .tele-stat {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tele-stat span.val {
+            color: var(--emerald);
+            font-weight: 600;
+        }
+
+        /* ساختار سه‌بخشی کلاس پیشرفته */
+        .cyber-grid-workspace {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 280px 1fr 340px;
+            gap: 12px;
+            padding: 12px;
+            height: calc(100vh - 136px);
+        }
+
+        .cyber-pod {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .cyber-pod::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 30px; height: 2px;
+            background: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .pod-header {
+            height: 42px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--cyan);
+        }
+
+        /* پاد حاضرین و فهرست اعضا */
+        .attendees-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .attendee-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .attendee-card.hand-active {
+            border-color: var(--amber);
+            background: rgba(255, 183, 0, 0.12);
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.2);
+            animation: pulseHand 1.5s infinite;
+        }
+
+        @keyframes pulseHand {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* استیج اصلی مرکزی (Cinema / Multi-Grid / Vector Board) */
+        .stage-viewport {
+            flex: 1;
+            position: relative;
+            background: #02040a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* اسکرین شیر سینمایی بزرگ */
+        #screenStage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            background: #000;
+        }
+
+        /* نوار شناور دوربین‌ها روی اسکرین شیر */
+        .ribbon-participants {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            height: 96px;
+            display: none;
+            gap: 10px;
+            overflow-x: auto;
+            z-index: 50;
+            padding: 4px;
+        }
+
+        .ribbon-cell {
+            width: 140px;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--cyan);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .ribbon-cell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* شبکه ماتریکس دوربین‌ها تا ۱۵ نفر */
+        .cams-matrix-grid {
+            position: absolute;
+            inset: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-auto-rows: 1fr;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .cam-pod-cell {
+            position: relative;
+            background: #060b17;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .cam-pod-cell.speaking {
+            border-color: var(--emerald);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.4);
+        }
+
+        .cam-pod-cell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cam-pod-cell.local video {
+            transform: scaleX(-1);
+        }
+
+        .cam-tag-hud {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(4, 7, 15, 0.75);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .vocal-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #555;
+        }
+
+        .vocal-dot.loud {
+            background: var(--emerald);
+            box-shadow: 0 0 8px var(--emerald);
+        }
+
+        /* وایت‌بورد کامل وکتوری سایبری */
+        .whiteboard-layer {
+            position: absolute;
+            inset: 0;
+            background: #050a17;
+            display: none;
+            flex-direction: column;
+            z-index: 40;
+        }
+
+        .board-controls {
+            height: 48px;
+            padding: 0 14px;
+            background: rgba(9, 15, 33, 0.98);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .board-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .board-btn:hover, .board-btn.active {
+            border-color: var(--cyan);
+            background: rgba(0, 243, 255, 0.18);
+            color: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .board-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        #wbCanvas {
+            flex: 1;
+            cursor: crosshair;
+        }
+
+        /* پاد گفتگوی زنده متنی */
+        .chat-stream {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-bubble {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-right: 3px solid var(--cyan);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .chat-bubble .speaker-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 3px;
+        }
+
+        .chat-box-input {
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 8px;
+        }
+
+        .hud-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-family: var(--font-fa);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .hud-input:focus {
+            border-color: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        /* بار کنترل شناور پایین */
+        .master-controls-bar {
+            position: relative;
+            z-index: 10;
+            height: 76px;
+            background: rgba(4, 8, 18, 0.94);
+            border-top: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            backdrop-filter: blur(16px);
+        }
+
+        .hud-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hud-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .hud-btn.active-glow {
+            background: rgba(0, 243, 255, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .hud-btn.danger-glow {
+            background: rgba(255, 0, 85, 0.15);
+            border-color: var(--magenta);
+            color: var(--magenta);
+            box-shadow: var(--glow-magenta);
+        }
+
+        .hud-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* لابی ورود هولوگرافیک */
+        #entryChamber {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: radial-gradient(circle at center, #0b1429 0%, #02040a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chamber-card {
+            width: 420px;
+            padding: 36px;
+            background: var(--panel-bg);
+            border: 1px solid var(--cyan);
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        .launch-btn {
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            color: #fff;
+            font-family: var(--font-fa);
+            font-weight: 800;
+            font-size: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            transition: 0.2s;
+        }
+
+        .launch-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- بوم سه بعدی ذرات کهکشانی -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- نوار HUD وضعیت بالا -->
+    <header>
+        <div class="sys-identity">
+            <div class="quantum-orb"></div>
+            <div class="brand-text">TITAN MATRIX PRO</div>
+            <div class="room-pill" id="roomDisplay">اتاق: غیرفعال</div>
+        </div>
+        <div class="hud-telemetry">
+            <div class="tele-stat">وضعیت استیج: <span class="val" id="stageStatusText">ماتریکس دوربین‌ها</span></div>
+            <div class="tele-stat">ظرفیت مش: <span class="val" id="nodeCountText">۱ / ۱۵ گره</span></div>
+            <div class="tele-stat">پینگ تقریب: <span class="val">~18ms</span></div>
+        </div>
+    </header>
+
+    <!-- بستر کاری اصلی (سه‌پاد کلاس تعاملی) -->
+    <div class="cyber-grid-workspace">
+        
+        <!-- ۱. پاد حاضرین سمت راست -->
+        <div class="cyber-pod">
+            <div class="pod-header">
+                <span>فهرست حاضرین مِش</span>
+                <span id="handCounter" style="color:var(--amber); font-family:var(--font-code);">۰ دست</span>
+            </div>
+            <div class="attendees-container" id="attendeesList">
+                <div class="attendee-card" id="card-local">
+                    <span id="localNameTag">شما (میزبان)</span>
+                    <span style="font-size: 11px; color: var(--emerald);">متصل</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ۲. استیج چندمنظوره مرکزی (دوربین‌ها / اسکرین‌شیر / وایت‌بورد) -->
+        <div class="cyber-pod">
+            <div class="pod-header">
+                <span id="stageTitle">استیج مرکزی فوق هوشمند</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="board-btn" id="toggleWbBtn" title="تغییر به وایت‌بورد">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+                    </button>
+                    <button class="board-btn" id="toggleMatrixBtn" title="تغییر به ماتریکس وب‌کم">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zm-9 9h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="stage-viewport">
+                <!-- اسکرین‌شیر سینمایی -->
+                <video id="screenStage" autoplay playsinline></video>
+
+                <!-- نوار شناور وب‌کم‌ها روی اشتراک صفحه -->
+                <div class="ribbon-participants" id="ribbonBar"></div>
+
+                <!-- ماتریکس پیش‌فرض وب‌کم‌ها برای ۱۵ نفر -->
+                <div class="cams-matrix-grid" id="matrixGrid">
+                    <div class="cam-pod-cell local" id="pod-local">
+                        <video id="localVideo" autoplay muted playsinline></video>
+                        <div class="cam-tag-hud">
+                            <span class="vocal-dot" id="dot-local"></span>
+                            <span id="tag-local">شما</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- وایت‌بورد وکتوری کامل سایبری با خط، دایره، مستطیل و قلم نئون -->
+                <div class="whiteboard-layer" id="wbLayer">
+                    <div class="board-controls">
+                        <button class="board-btn active" id="toolPencil" title="قلم نئونی">
+                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </button>
+                        <button class="board-btn" id="toolLine" title="خط مستقیم">
+                            <svg viewBox="0 0 24 24"><path d="M19 3L5 17.2V21h3.8L21 8.8z"/></svg>
+                        </button>
+                        <button class="board-btn" id="toolRect" title="مستطیل">
+                            <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/></svg>
+                        </button>
+                        <button class="board-btn" id="toolCircle" title="دایره">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </button>
+                        <button class="board-btn" id="toolEraser" title="پاک‌کن">
+                            <svg viewBox="0 0 24 24"><path d="M15.14 3c-.39 0-.77.15-1.06.44l-8.5 8.5c-.59.59-.59 1.54 0 2.12l5.5 5.5c.29.29.68.44 1.06.44H19v-2h-5.09l4.29-4.29c.59-.59.59-1.54 0-2.12l-7-7c-.29-.29-.68-.44-1.06-.44z"/></svg>
+                        </button>
+                        <input type="color" id="wbColor" value="#00f3ff" style="border:none; width:28px; height:28px; cursor:pointer; background:transparent;">
+                        <input type="range" id="wbWidth" min="1" max="15" value="3" style="width:70px; cursor:pointer;">
+                        <div style="flex:1"></div>
+                        <button class="board-btn" id="wbDownloadBtn" title="دانلود تصویر تخته" style="width:auto; padding:0 10px; font-size:11px;">دانلود</button>
+                        <button class="board-btn" id="wbClearBtn" title="پاک‌سازی" style="color:var(--magenta); width:auto; padding:0 10px; font-size:11px;">پاک‌سازی</button>
+                    </div>
+                    <canvas id="wbCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ۳. پاد گفتگوی متنی مِش سمت چپ -->
+        <div class="cyber-pod">
+            <div class="pod-header">کانال ارتباط متنی</div>
+            <div class="chat-stream" id="chatStream">
+                <div class="chat-bubble">
+                    <div class="speaker-title">پایانه مرکزی تایتان</div>
+                    به استودیوی پیشرفته تایتان ماتریکس خوش آمدید. لینک ارتباطی پایدار است.
+                </div>
+            </div>
+            <div class="chat-box-input">
+                <input type="text" class="hud-input" id="chatInput" placeholder="ارسال پیام به همه...">
+                <button class="board-btn" id="chatSendBtn">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نوار دستورات فرماندهی پایین -->
+    <div class="master-controls-bar">
+        <button class="hud-btn" id="micBtn" title="میکروفون">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+        <button class="hud-btn" id="camBtn" title="دوربین">
+            <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </button>
+        <button class="hud-btn" id="screenBtn" title="اشتراک صفحه سینمایی">
+            <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
+        </button>
+        <button class="hud-btn" id="handBtn" title="بلند کردن دست برای نوبت">
+            <svg viewBox="0 0 24 24"><path d="M13 24c-3.26 0-6.19-1.99-7.4-5.02l-3.07-7.61c-.28-.69-.07-1.48.52-1.93.63-.48 1.51-.43 2.08.12l2.37 2.27V4.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v6.5h1V2.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V11h1V1.5C14.5.67 15.17 0 16 0s1.5.67 1.5 1.5V11h1V3.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v11.54c0 .4-.16.78-.44 1.06L20 19v5h-7z"/></svg>
+        </button>
+    </div>
+
+    <!-- پنجره اتصال لابی -->
+    <div id="entryChamber">
+        <div class="chamber-card">
+            <h2 style="color:var(--cyan); text-align:center; font-family:var(--font-hud);">CYBER TITAN 15 PRO</h2>
+            <div style="font-size:12px; color:#8ba0c2; text-align:center;">کلاس تعاملی مِش تا ۱۵ کاربر همراه با وایت‌بورد وکتوری زنده</div>
+            <input type="text" class="hud-input" id="userNameInput" placeholder="نام یا عنوان شما">
+            <input type="text" class="hud-input" id="roomKeyInput" placeholder="شناسه اتاق (مثلاً matrix77)">
+            <button class="launch-btn" id="startBtn">ورود به ماتریکس ارتباطی</button>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. موتور رندر سه بعدی تعاملی WebGL
+           ========================================================================== */
+        const canvas = document.getElementById('bg-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.z = 450;
+
+        const count = 800;
+        const geom = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 1200;
+        geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+        const mat = new THREE.PointsMaterial({ color: 0x00f3ff, size: 2.4, transparent: true, opacity: 0.55 });
+        const starPoints = new THREE.Points(geom, mat);
+        scene.add(starPoints);
+
+        function animateBg() {
+            requestAnimationFrame(animateBg);
+            starPoints.rotation.y += 0.0005;
+            starPoints.rotation.x += 0.0002;
+            renderer.render(scene, camera);
+        }
+        animateBg();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        /* ==========================================================================
+           2. Web Audio API SFX (صداهای نئونی سایبری بدون نیاز به فایل خارجی)
+           ========================================================================== */
+        let actx;
+        function playSfx(freq = 440, type = 'sine', duration = 0.1) {
+            try {
+                if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = actx.createOscillator();
+                const gain = actx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, actx.currentTime);
+                gain.gain.setValueAtTime(0.08, actx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(actx.destination);
+                osc.start();
+                osc.stop(actx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        /* ==========================================================================
+           3. سیستم هماهنگی مِش P2P پایدار (حل مشکل Peer Discovery بدون نیاز به سرور)
+           ========================================================================== */
+        const MAX_PEERS = 15;
+        let peer = null;
+        let myPeerId = '';
+        let myName = 'کاربر تایتان';
+        let currentRoom = '';
+        let localStream = null;
+        let screenStream = null;
+        let isScreenActive = false;
+        let isHandUp = false;
+        const peers = {}; // اطلاعات تماس و دیتای هر نود
+
+        const ICE_SERVERS = {
+            iceServers: [
+                { urls: 'stun:stun.cloudflare.com:3478' },
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        async function initCamera() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { max: 24 } },
+                    audio: { echoCancellation: true, noiseSuppression: true }
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+                listenVolume(localStream, 'dot-local', 'pod-local');
+            } catch(e) {
+                console.warn("دوربین در دسترس نیست؛ حالت صوتی فعال شد:", e);
+                const dummy = document.createElement('canvas');
+                dummy.width = 320; dummy.height = 180;
+                localStream = dummy.captureStream(5);
+            }
+        }
+
+        function listenVolume(stream, dotId, podId) {
+            try {
+                if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+                const src = actx.createMediaStreamSource(stream);
+                const analyser = actx.createAnalyser();
+                analyser.fftSize = 128;
+                src.connect(analyser);
+                const arr = new Uint8Array(analyser.frequencyBinCount);
+
+                setInterval(() => {
+                    analyser.getByteFrequencyData(arr);
+                    let sum = 0;
+                    for(let i=0; i<arr.length; i++) sum += arr[i];
+                    const avg = sum / arr.length;
+                    const isLoud = avg > 25;
+
+                    const dot = document.getElementById(dotId);
+                    const pod = document.getElementById(podId);
+                    if(dot) dot.classList.toggle('loud', isLoud);
+                    if(pod) pod.classList.toggle('speaking', isLoud);
+                }, 120);
+            } catch(e) {}
+        }
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            const nick = document.getElementById('userNameInput').value.trim();
+            const room = document.getElementById('roomKeyInput').value.trim();
+            if(!room) return alert('شناسه اتاق را وارد نمایید!');
+            if(nick) myName = nick;
+            currentRoom = room;
+
+            document.getElementById('entryChamber').style.display = 'none';
+            document.getElementById('roomDisplay').innerText = `اتاق: ${room}`;
+            document.getElementById('localNameTag').innerText = `${myName} (شما)`;
+            document.getElementById('tag-local').innerText = myName;
+
+            await initCamera();
+            startMeshNetwork(room);
+        });
+
+        // سیستم Swarm Discovery بر مبنای هاست مجازی و کلاینت‌های متصل
+        function startMeshNetwork(roomName) {
+            // ایجاد آی‌دی بر اساس هش رندوم ولی ساختارمند
+            const myRand = Math.floor(Math.random() * 89999 + 10000);
+            myPeerId = `ttn_${roomName}_${myRand}`;
+            
+            peer = new Peer(myPeerId, { config: ICE_SERVERS });
+
+            peer.on('open', () => {
+                playSfx(550, 'triangle', 0.2);
+                discoverActivePeers(roomName);
+            });
+
+            peer.on('call', (call) => {
+                call.answer(localStream);
+                handleStreamCall(call);
+            });
+
+            peer.on('connection', (conn) => {
+                bindDataChannel(conn);
+            });
+        }
+
+        // جستجوی نودهای فعال شبکه از طریق کانال سیگنالینگ PeerJS
+        function discoverActivePeers(roomName) {
+            // ساخت پل با پیشوندهای استاندارد اتاق برای اتصال خودکار نودها
+            for(let slot = 1; slot <= 15; slot++) {
+                const targetHost = `ttn_${roomName}_slot_${slot}`;
+                if(targetHost !== myPeerId) {
+                    tryConnectPeer(targetHost);
+                }
+            }
+
+            // ثبت کردن خود در یکی از اسلات‌های در دسترس
+            registerSlot(roomName);
+        }
+
+        function registerSlot(roomName) {
+            for(let slot = 1; slot <= 15; slot++) {
+                const slotId = `ttn_${roomName}_slot_${slot}`;
+                const testPeer = new Peer(slotId, { config: ICE_SERVERS });
+                testPeer.on('open', () => {
+                    // موفق شدیم به عنوان این اسلات ثبت شویم
+                    peer.destroy();
+                    peer = testPeer;
+                    myPeerId = slotId;
+                    listenToMeshEvents();
+                    return;
+                });
+                testPeer.on('error', () => {
+                    // این اسلات قبلاً توسط کاربر دیگری گرفته شده، بعدی بررسی شود
+                    testPeer.destroy();
+                });
+            }
+        }
+
+        function listenToMeshEvents() {
+            peer.on('call', (call) => {
+                call.answer(localStream);
+                handleStreamCall(call);
+            });
+            peer.on('connection', (conn) => {
+                bindDataChannel(conn);
+            });
+        }
+
+        function tryConnectPeer(targetId) {
+            if(Object.keys(peers).length >= MAX_PEERS) return;
+
+            const conn = peer.connect(targetId, { metadata: { user: myName } });
+            bindDataChannel(conn);
+
+            const call = peer.call(targetId, localStream, { metadata: { user: myName } });
+            handleStreamCall(call);
+        }
+
+        function handleStreamCall(call) {
+            const tid = call.peer;
+            peers[tid] = peers[tid] || {};
+            peers[tid].call = call;
+
+            call.on('stream', (remoteStream) => {
+                buildVideoCell(tid, remoteStream, call.metadata?.user || 'گره متصل');
+                updateNodeCounts();
+            });
+
+            call.on('close', () => removeNode(tid));
+            call.on('error', () => removeNode(tid));
+        }
+
+        function bindDataChannel(conn) {
+            const tid = conn.peer;
+            peers[tid] = peers[tid] || {};
+            peers[tid].conn = conn;
+
+            conn.on('open', () => {
+                updateNodeCounts();
+                conn.send({ type: 'PEER_HELLO', name: myName });
+            });
+
+            conn.on('data', (d) => {
+                if(d.type === 'CHAT') {
+                    addChatMsg(d.name, d.text);
+                } else if(d.type === 'WB_STROKE') {
+                    drawStrokeFromRemote(d);
+                } else if(d.type === 'WB_CLEAR') {
+                    clearCanvasLocally();
+                } else if(d.type === 'HAND_NOTIFY') {
+                    setHandStatus(tid, d.name, d.active);
+                } else if(d.type === 'PEER_HELLO') {
+                    addAttendeeRow(tid, d.name);
+                }
+            });
+
+            conn.on('close', () => removeNode(tid));
+        }
+
+        function broadcastAll(pkg) {
+            Object.values(peers).forEach(p => {
+                if(p.conn && p.conn.open) p.conn.send(pkg);
+            });
+        }
+
+        /* ==========================================================================
+           4. مدیریت DOM ویدیوها و ماتریکس ۱۵ نفره
+           ========================================================================== */
+        const matrixGrid = document.getElementById('matrixGrid');
+        const ribbonBar = document.getElementById('ribbonBar');
+        const attendeesList = document.getElementById('attendeesList');
+
+        function buildVideoCell(id, stream, name) {
+            if(document.getElementById(`cell-${id}`)) return;
+
+            const cell = document.createElement('div');
+            cell.className = 'cam-pod-cell';
+            cell.id = `cell-${id}`;
+
+            const vid = document.createElement('video');
+            vid.autoplay = true;
+            vid.playsInline = true;
+            vid.srcObject = stream;
+
+            const hudTag = document.createElement('div');
+            hudTag.className = 'cam-tag-hud';
+            hudTag.innerHTML = `<span class="vocal-dot" id="dot-${id}"></span><span id="name-${id}">${name}</span>`;
+
+            cell.appendChild(vid);
+            cell.appendChild(hudTag);
+
+            if(isScreenActive) {
+                ribbonBar.appendChild(cell);
+            } else {
+                matrixGrid.appendChild(cell);
+            }
+
+            addAttendeeRow(id, name);
+            listenVolume(stream, `dot-${id}`, `cell-${id}`);
+        }
+
+        function addAttendeeRow(id, name) {
+            if(!document.getElementById(`att-${id}`)) {
+                const row = document.createElement('div');
+                row.className = 'attendee-card';
+                row.id = `att-${id}`;
+                row.innerHTML = `<span id="lbl-${id}">${name}</span><span id="handlbl-${id}" style="font-size:11px; color:#7890b2">عضو</span>`;
+                attendeesList.appendChild(row);
+            } else {
+                document.getElementById(`lbl-${id}`).innerText = name;
+                const tag = document.getElementById(`name-${id}`);
+                if(tag) tag.innerText = name;
+            }
+        }
+
+        function removeNode(id) {
+            const cell = document.getElementById(`cell-${id}`);
+            if(cell) cell.remove();
+            const att = document.getElementById(`att-${id}`);
+            if(att) att.remove();
+            if(peers[id]) delete peers[id];
+            updateNodeCounts();
+        }
+
+        function updateNodeCounts() {
+            const total = Object.keys(peers).length + 1;
+            document.getElementById('nodeCountText').innerText = `${total} / ${MAX_PEERS} گره`;
+        }
+
+        /* ==========================================================================
+           5. اشتراک صفحه سینمایی پیشرفته (Cinema Screen Share)
+           ========================================================================== */
+        const screenBtn = document.getElementById('screenBtn');
+        const screenStage = document.getElementById('screenStage');
+        const stageStatusText = document.getElementById('stageStatusText');
+
+        screenBtn.addEventListener('click', async () => {
+            if(!isScreenActive) {
+                try {
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                    const screenTrack = screenStream.getVideoTracks()[0];
+
+                    Object.values(peers).forEach(p => {
+                        if(p.call?.peerConnection) {
+                            const sender = p.call.peerConnection.getSenders().find(s => s.track.kind === 'video');
+                            if(sender) sender.replaceTrack(screenTrack);
+                        }
+                    });
+
+                    isScreenActive = true;
+                    screenStage.srcObject = screenStream;
+                    screenStage.style.display = 'block';
+                    matrixGrid.style.display = 'none';
+                    ribbonBar.style.display = 'flex';
+                    screenBtn.classList.add('active-glow');
+                    stageStatusText.innerText = 'اشتراک صفحه (Cinema)';
+                    playSfx(750, 'square', 0.15);
+
+                    // انتقال وب‌کم‌ها به نوار بالایی
+                    document.querySelectorAll('.cam-pod-cell').forEach(c => ribbonBar.appendChild(c));
+
+                    screenTrack.onended = closeScreenSharing;
+                } catch(e) {
+                    console.log("لغو اسکرین‌شیر:", e);
+                }
+            } else {
+                closeScreenSharing();
+            }
+        });
+
+        function closeScreenSharing() {
+            if(!isScreenActive) return;
+            isScreenActive = false;
+
+            if(screenStream) screenStream.getTracks().forEach(t => t.stop());
+
+            const camTrack = localStream.getVideoTracks()[0];
+            Object.values(peers).forEach(p => {
+                if(p.call?.peerConnection) {
+                    const sender = p.call.peerConnection.getSenders().find(s => s.track.kind === 'video');
+                    if(sender) sender.replaceTrack(camTrack);
+                }
+            });
+
+            screenStage.style.display = 'none';
+            ribbonBar.style.display = 'none';
+            matrixGrid.style.display = 'grid';
+            screenBtn.classList.remove('active-glow');
+            stageStatusText.innerText = 'ماتریکس دوربین‌ها';
+
+            document.querySelectorAll('.cam-pod-cell').forEach(c => matrixGrid.appendChild(c));
+        }
+
+        /* ==========================================================================
+           6. وایت‌بورد وکتوری کامل سایبری
+           ========================================================================== */
+        const wbLayer = document.getElementById('wbLayer');
+        const wbCanvas = document.getElementById('wbCanvas');
+        const wbCtx = wbCanvas.getContext('2d');
+        let currentTool = 'pencil';
+        let isDrawing = false;
+        let startX = 0, startY = 0;
+        let boardSnapshot = null;
+
+        function resizeWb() {
+            wbCanvas.width = wbLayer.clientWidth;
+            wbCanvas.height = wbLayer.clientHeight - 48;
+        }
+
+        document.getElementById('toggleWbBtn').addEventListener('click', () => {
+            wbLayer.style.display = 'flex';
+            matrixGrid.style.display = 'none';
+            screenStage.style.display = 'none';
+            ribbonBar.style.display = 'none';
+            stageStatusText.innerText = 'وایت‌بورد تعاملی';
+            resizeWb();
+            playSfx(600, 'sine', 0.08);
+        });
+
+        document.getElementById('toggleMatrixBtn').addEventListener('click', () => {
+            wbLayer.style.display = 'none';
+            if(isScreenActive) {
+                screenStage.style.display = 'block';
+                ribbonBar.style.display = 'flex';
+                stageStatusText.innerText = 'اشتراک صفحه (Cinema)';
+            } else {
+                matrixGrid.style.display = 'grid';
+                stageStatusText.innerText = 'ماتریکس دوربین‌ها';
+            }
+        });
+
+        const toolIds = {
+            toolPencil: 'pencil',
+            toolLine: 'line',
+            toolRect: 'rect',
+            toolCircle: 'circle',
+            toolEraser: 'eraser'
+        };
+
+        Object.keys(toolIds).forEach(id => {
+            document.getElementById(id).addEventListener('click', function() {
+                document.querySelectorAll('.board-controls .board-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTool = toolIds[id];
+                playSfx(500, 'sine', 0.04);
+            });
+        });
+
+        wbCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            startX = e.offsetX;
+            startY = e.offsetY;
+            boardSnapshot = wbCtx.getImageData(0, 0, wbCanvas.width, wbCanvas.height);
+            wbCtx.beginPath();
+            wbCtx.moveTo(startX, startY);
+        });
+
+        wbCanvas.addEventListener('mousemove', (e) => {
+            if(!isDrawing) return;
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const color = document.getElementById('wbColor').value;
+            const width = document.getElementById('wbWidth').value;
+
+            if(currentTool === 'pencil') {
+                wbCtx.strokeStyle = color;
+                wbCtx.lineWidth = width;
+                wbCtx.lineCap = 'round';
+                wbCtx.lineTo(x, y);
+                wbCtx.stroke();
+                sendStroke({ tool: 'pencil', x0: startX, y0: startY, x1: x, y1: y, color: color, width: width });
+                startX = x;
+                startY = y;
+            } else if(currentTool === 'eraser') {
+                wbCtx.clearRect(x - 12, y - 12, 24, 24);
+                sendStroke({ tool: 'eraser', x0: x, y0: y });
+            } else {
+                wbCtx.putImageData(boardSnapshot, 0, 0);
+                wbCtx.strokeStyle = color;
+                wbCtx.lineWidth = width;
+                if(currentTool === 'line') {
+                    wbCtx.beginPath();
+                    wbCtx.moveTo(startX, startY);
+                    wbCtx.lineTo(x, y);
+                    wbCtx.stroke();
+                } else if(currentTool === 'rect') {
+                    wbCtx.strokeRect(startX, startY, x - startX, y - startY);
+                } else if(currentTool === 'circle') {
+                    const r = Math.hypot(x - startX, y - startY);
+                    wbCtx.beginPath();
+                    wbCtx.arc(startX, startY, r, 0, 2 * Math.PI);
+                    wbCtx.stroke();
+                }
+            }
+        });
+
+        wbCanvas.addEventListener('mouseup', (e) => {
+            if(!isDrawing) return;
+            isDrawing = false;
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const color = document.getElementById('wbColor').value;
+            const width = document.getElementById('wbWidth').value;
+
+            if(['line', 'rect', 'circle'].includes(currentTool)) {
+                sendStroke({ tool: currentTool, x0: startX, y0: startY, x1: x, y1: y, color: color, width: width });
+            }
+        });
+
+        function sendStroke(d) {
+            broadcastAll({
+                type: 'WB_STROKE',
+                tool: d.tool,
+                color: d.color,
+                width: d.width,
+                x0: d.x0 / wbCanvas.width,
+                y0: d.y0 / wbCanvas.height,
+                x1: d.x1 ? d.x1 / wbCanvas.width : 0,
+                y1: d.y1 ? d.y1 / wbCanvas.height : 0
+            });
+        }
+
+        function drawStrokeFromRemote(d) {
+            const rx0 = d.x0 * wbCanvas.width;
+            const ry0 = d.y0 * wbCanvas.height;
+            const rx1 = d.x1 * wbCanvas.width;
+            const ry1 = d.y1 * wbCanvas.height;
+
+            wbCtx.strokeStyle = d.color;
+            wbCtx.lineWidth = d.width;
+            wbCtx.lineCap = 'round';
+
+            if(d.tool === 'pencil') {
+                wbCtx.beginPath();
+                wbCtx.moveTo(rx0, ry0);
+                wbCtx.lineTo(rx1, ry1);
+                wbCtx.stroke();
+            } else if(d.tool === 'eraser') {
+                wbCtx.clearRect(rx0 - 12, ry0 - 12, 24, 24);
+            } else if(d.tool === 'line') {
+                wbCtx.beginPath();
+                wbCtx.moveTo(rx0, ry0);
+                wbCtx.lineTo(rx1, ry1);
+                wbCtx.stroke();
+            } else if(d.tool === 'rect') {
+                wbCtx.strokeRect(rx0, ry0, rx1 - rx0, ry1 - ry0);
+            } else if(d.tool === 'circle') {
+                const r = Math.hypot(rx1 - rx0, ry1 - ry0);
+                wbCtx.beginPath();
+                wbCtx.arc(rx0, ry0, r, 0, 2 * Math.PI);
+                wbCtx.stroke();
+            }
+        }
+
+        document.getElementById('wbClearBtn').addEventListener('click', () => {
+            clearCanvasLocally();
+            broadcastAll({ type: 'WB_CLEAR' });
+        });
+
+        function clearCanvasLocally() {
+            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+        }
+
+        document.getElementById('wbDownloadBtn').addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.download = `titan_board_${Date.now()}.png`;
+            a.href = wbCanvas.toDataURL();
+            a.click();
+        });
+
+        /* ==========================================================================
+           7. سیستم نوبت‌دهی و بلند کردن دست (Raise Hand)
+           ========================================================================== */
+        const handBtn = document.getElementById('handBtn');
+        handBtn.addEventListener('click', () => {
+            isHandUp = !isHandUp;
+            handBtn.classList.toggle('active-glow', isHandUp);
+            document.getElementById('card-local').classList.toggle('hand-active', isHandUp);
+            playSfx(isHandUp ? 880 : 350, 'triangle', 0.18);
+            broadcastAll({ type: 'HAND_NOTIFY', name: myName, active: isHandUp });
+        });
+
+        function setHandStatus(id, name, active) {
+            const card = document.getElementById(`att-${id}`);
+            if(card) {
+                card.classList.toggle('hand-active', active);
+                const tag = document.getElementById(`handlbl-${id}`);
+                if(tag) tag.innerText = active ? '✋ تقاضای صحبت' : 'عضو';
+            }
+            if(active) playSfx(900, 'sine', 0.2);
+        }
+
+        /* ==========================================================================
+           8. پیام‌رسانی متنی درون مِش
+           ========================================================================== */
+        const chatInput = document.getElementById('chatInput');
+        document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+        chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendChat(); });
+
+        function sendChat() {
+            const val = chatInput.value.trim();
+            if(!val) return;
+            addChatMsg(`شما (${myName})`, val);
+            broadcastAll({ type: 'CHAT', name: myName, text: val });
+            chatInput.value = '';
+        }
+
+        function addChatMsg(user, txt) {
+            const st = document.getElementById('chatStream');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.innerHTML = `<div class="speaker-title">${user}</div>${txt}`;
+            st.appendChild(bubble);
+            st.scrollTop = st.scrollHeight;
+            playSfx(720, 'sine', 0.06);
+        }
+
+        /* ==========================================================================
+           9. کلیدهای قطع و وصل صوت / تصویر محلی
+           ========================================================================== */
+        let micState = true;
+        let camState = true;
+
+        document.getElementById('micBtn').addEventListener('click', function() {
+            if(!localStream) return;
+            micState = !micState;
+            localStream.getAudioTracks()[0].enabled = micState;
+            this.classList.toggle('danger-glow', !micState);
+            playSfx(micState ? 600 : 250, 'sine', 0.1);
+        });
+
+        document.getElementById('camBtn').addEventListener('click', function() {
+            if(!localStream) return;
+            camState = !camState;
+            localStream.getVideoTracks()[0].enabled = camState;
+            this.classList.toggle('danger-glow', !camState);
+            playSfx(camState ? 550 : 200, 'square', 0.1);
+        });
+    </script>
+</body>
+</html>
